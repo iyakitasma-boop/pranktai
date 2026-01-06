@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYSTEM ALERT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background: #000;
+            color: #ff0000;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        .warning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95%;
+            text-align: center;
+            padding: 20px;
+            border: 3px solid #ff0000;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 50px #ff0000;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            color: #ff4444;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+
+        .countdown {
+            font-size: 2.5rem;
+            color: #ff0000;
+            margin: 20px 0;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        input {
+            width: 80%;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            background: #111;
+            color: #ff0000;
+            border: 2px solid #ff0000;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: #ff0000;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .error {
+            color: #ff4444;
+            font-size: 1rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .file-list {
+            text-align: left;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            color: #ff6666;
+            max-height: 150px;
+            overflow-y: scroll;
+            background: rgba(255, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .locked {
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="warning">
+        <h1>⚠️ CRITICAL SYSTEM ALERT ⚠️</h1>
+        
+        <div class="alert">
+            <p>🚨 YOUR DEVICE HAS BEEN LOCKED BY TROJAN:Android/FileCrypter.A</p>
+            <p>🔓 All files have been encrypted with military-grade AES-256-RSA</p>
+            <p>📱 Camera & microphone are now being monitored</p>
+            <p>💳 Banking data extraction in progress...</p>
+        </div>
+
+        <div class="file-list">
+            <p>📂 Photos/ (1,247 files) - ENCRYPTED</p>
+            <p>📂 Documents/ (89 files) - ENCRYPTED</p>
+            <p>📂 WhatsApp/ - ENCRYPTED</p>
+            <p>📂 Contacts - ENCRYPTED</p>
+            <p>📂 System Files - ENCRYPTED</p>
+        </div>
+
+        <div class="countdown" id="timer">05:00</div>
+
+        <div class="alert">
+            ⏳ FINAL WARNING: Enter decryption key before timer reaches zero<br>
+            ⚠️ After 5:00, ALL DATA WILL BE PERMANENTLY DELETED
+        </div>
+
+        <input type="password" id="password" placeholder="ENTER DECRYPTION KEY" maxlength="6">
+        <button onclick="checkPassword()">UNLOCK DEVICE</button>
+        
+        <div class="error" id="error">
+            ❌ INCORRECT KEY! Files are being encrypted... Attempts remaining: <span id="attempts">3</span>
+        </div>
+
+        <div class="alert" style="font-size: 0.9rem; margin-top: 20px;">
+            🔑 Hint: Key is 6 digits (default factory code)
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 300;
+        let attempts = 3;
+        const correctPin = "123456";
+        let isLocked = false;
+
+        const timerElement = document.getElementById('timer');
+        const errorElement = document.getElementById('error');
+        const attemptsElement = document.getElementById('attempts');
+        const passwordInput = document.getElementById('password');
+
+        // Fullscreen lock
+        document.documentElement.requestFullscreen().catch(e => {});
+        document.body.classList.add('locked');
+
+        // Disable back button
+        history.pushState(null, null, location.href);
+        window.onpopstate = function() {
+            history.go(1);
+        };
+
+        // Timer countdown
+        const timer = setInterval(() => {
+            timeLeft--;
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                document.body.innerHTML = `
+                    <div class="warning">
+                        <h1>💀 DATA DESTRUCTION COMPLETE 💀</h1>
+                        <div class="alert">
+                            All files have been permanently deleted.<br>
+                            Device bricking in progress...<br><br>
+                            Just kidding! This is a prank! 😂<br>
+                            Close this tab to exit.
+                        </div>
+                    </div>
+                `;
+            }
+        }, 1000);
+
+        // Fake file encryption animation
+        setInterval(() => {
+            const fileList = document.querySelector('.file-list');
+            if (fileList && !isLocked) {
+                fileList.innerHTML += `<p>📂 Memory_Sector_${Math.floor(Math.random()*1000)} - ENCRYPTING...</p>`;
+                fileList.scrollTop = fileList.scrollHeight;
+            }
+        }, 2000);
+
+        function checkPassword() {
+            if (isLocked) return;
+            
+            const input = passwordInput.value;
+            
+            if (input === correctPin) {
+                clearInterval(timer);
+                document.body.innerHTML = `
+                    <div class="warning">
+                        <h1>✅ DECRYPTION SUCCESSFUL</h1>
+                        <div class="alert">
+                            All files have been restored.<br>
+                            Malware has been removed.<br><br>
+                            <h2>😂 YOU'VE BEEN PRANKED! 😂</h2>
+                            This was just a harmless joke!<br>
+                            No files were actually encrypted.<br><br>
+                            Made by Ditzz - Bocil Barbar 🗿🔥<br>
+                            Close this tab to exit.
+                        </div>
+                        <button onclick="window.close()">CLOSE TAB</button>
+                    </div>
+                `;
+            } else {
+                attempts--;
+                attemptsElement.textContent = attempts;
+                errorElement.style.display = 'block';
+                
+                // Shake animation
+                document.querySelector('.warning').style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    document.querySelector('.warning').style.animation = '';
+                }, 500);
+                
+                if (attempts <= 0) {
+                    isLocked = true;
+                    errorElement.innerHTML = "❌ TOO MANY FAILED ATTEMPTS!<br>Initiating permanent encryption...";
+                    passwordInput.disabled = true;
+                    
+                    setTimeout(() => {
+                        document.body.innerHTML = `
+                            <div class="warning">
+                                <h1>😈 PRANK OVER! 😈</h1>
+                                <div class="alert">
+                                    Your friend messed with you!<br>
+                                    Nothing was actually harmed.<br><br>
+                                    Tell them: "Ditzz gacor bikin prank!" 🔥<br><br>
+                                    PIN was: 123456<br>
+                                    Close this tab whenever.
+                                </div>
+                            </div>
+                        `;
+                    }, 3000);
+                }
+            }
+        }
+
+        // Prevent right click
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // Prevent keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey || e.key === 'F12') e.preventDefault();
+        });
+    </script>
+</body>
+</html>
